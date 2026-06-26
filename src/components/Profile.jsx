@@ -1,10 +1,35 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
   const fullName = useRef(null);
   const profilePictureUrl = useRef(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${import.meta.env.VITE_FIREBASE_API_KEY}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idToken: localStorage.getItem("token"),
+          }),
+        });
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
+        fullName.current.value = data.users[0].displayName || "";
+        profilePictureUrl.current.value = data.users[0].photoUrl || "";
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const saveHandler = async (e) => {
     e.preventDefault();
