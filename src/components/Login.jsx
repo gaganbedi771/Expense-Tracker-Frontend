@@ -98,7 +98,7 @@ const Login = () => {
           placeholder="Enter email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border-b-black border rounded-xl mb-5 p-2 font-medium"
+          className="border-b-black border rounded-xl mt-0 p-2 font-medium"
         ></input>
 
         <input
@@ -108,10 +108,10 @@ const Login = () => {
           placeholder="Enter password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border-b-black border rounded-xl mb-5 p-2 font-medium"
+          className="border-b-black border rounded-xl mt-5 p-2 font-medium"
         ></input>
 
-        {isSignUpPage && (
+        {isSignUpPage ? (
           <>
             {" "}
             <input
@@ -121,14 +121,21 @@ const Login = () => {
               placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="border-b-black border rounded-xl mb-5 p-2 font-medium"
+              className="border-b-black border rounded-xl mt-5 p-2 font-medium"
             ></input>{" "}
           </>
+        ) : (
+          <p
+            className="self-center mt-2 hover:cursor-pointer hover:scale-105 hover:text-blue-600 active:scale-95"
+            onClick={() => navigate("/reset")}
+          >
+            Forgot Password? Click here to reset.
+          </p>
         )}
 
         <button
           type="submit"
-          className=" self-center px-3 py-2 border font-bold rounded-xl cursor-pointer active:scale-95  hover:text-white hover:bg-black transition-colors"
+          className=" mt-5 self-center px-3 py-2 border font-bold rounded-xl cursor-pointer active:scale-95  hover:text-white hover:bg-black transition-colors"
         >
           {isSignUpPage ? "Sign Up" : "Login"}
         </button>
