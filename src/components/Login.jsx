@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,6 +37,9 @@ const Login = () => {
           },
         );
         const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
         console.log("signup success", data);
         setEmail("");
         setPassword("");
@@ -41,6 +47,7 @@ const Login = () => {
         setIsSignUpPage((pre) => !pre);
       } catch (error) {
         console.error("Error signing up:", error);
+        alert("Sign up failed: " + error.message);
       }
     } else {
       try {
@@ -56,11 +63,19 @@ const Login = () => {
             }),
           },
         );
-        console.log(email, password);
         const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
         console.log("Login successful", data);
+        localStorage.setItem("token", data.idToken);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        navigate("/home");
       } catch (error) {
         console.error("Error logging in:", error);
+        alert("Login failed: " + error.message);
       }
     }
   };
