@@ -83,7 +83,7 @@ const Header = () => {
           </p>
         )}
 
-        <p className="bg-gray-300 text-black px-4 py-2 rounded-full mr-3 inline-block  hover:bg-gray-400 hover:text-white transition-colors">
+        <p className="bg-gray-300 text-black px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
           Your Profile is incomplete.{" "}
           <span
             className="underline text-blue-600 cursor-pointer hover:text-blue-800"
@@ -92,6 +92,15 @@ const Header = () => {
             Complete Now.
           </span>
         </p>
+        <button
+          className="mr-3 border border-gray-400 bg-gray-300 text-black px-4 py-2 rounded-full hover:bg-gray-400 hover:text-white transition-colors"
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/");
+          }}
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
