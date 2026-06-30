@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
+
+  const location = useLocation();
+
+  const isMainPage = location.pathname == "/home";
 
   const [verificationMailSent, setVerificationMailSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
@@ -62,46 +66,48 @@ const Header = () => {
     <div className="bg-gray-200 border-b-2 border-gray-400 flex justify-between items-center">
       <h2 className="p-5 text-black text-2xl font-bold">Expense Tracker</h2>
 
-      <div className="flex gap-3">
-        {emailVerified ? (
-          <p className="bg-gray-300 px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
-            Email Verified
-          </p>
-        ) : verificationMailSent ? (
-          <p className="bg-gray-300 px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
-            Email send, Check your email to verify.
-          </p>
-        ) : (
-          <p className="bg-gray-300 px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
-            Your Email is not verified.{" "}
+      {isMainPage && (
+        <div className="flex gap-3">
+          {emailVerified ? (
+            <p className="bg-gray-300 px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
+              Email Verified
+            </p>
+          ) : verificationMailSent ? (
+            <p className="bg-gray-300 px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
+              Email send, Check your email to verify.
+            </p>
+          ) : (
+            <p className="bg-gray-300 px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
+              Your Email is not verified.{" "}
+              <span
+                className="underline text-blue-600 cursor-pointer hover:text-blue-800"
+                onClick={sendEmailHandler}
+              >
+                Verify Now.
+              </span>
+            </p>
+          )}
+
+          <p className="bg-gray-300 text-black px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
+            Your Profile is incomplete.{" "}
             <span
               className="underline text-blue-600 cursor-pointer hover:text-blue-800"
-              onClick={sendEmailHandler}
+              onClick={() => navigate("/profile")}
             >
-              Verify Now.
+              Complete Now.
             </span>
           </p>
-        )}
-
-        <p className="bg-gray-300 text-black px-4 py-2 rounded-full inline-block  hover:bg-gray-400 hover:text-white transition-colors">
-          Your Profile is incomplete.{" "}
-          <span
-            className="underline text-blue-600 cursor-pointer hover:text-blue-800"
-            onClick={() => navigate("/profile")}
+          <button
+            className="mr-3 border border-gray-400 bg-gray-300 text-black px-4 py-2 rounded-full hover:bg-gray-400 hover:text-white transition-colors"
+            onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/");
+            }}
           >
-            Complete Now.
-          </span>
-        </p>
-        <button
-          className="mr-3 border border-gray-400 bg-gray-300 text-black px-4 py-2 rounded-full hover:bg-gray-400 hover:text-white transition-colors"
-          onClick={() => {
-            localStorage.removeItem("token");
-            navigate("/");
-          }}
-        >
-          Logout
-        </button>
-      </div>
+            Logout
+          </button>
+        </div>
+      )}
     </div>
   );
 };
