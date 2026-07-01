@@ -9,7 +9,14 @@ const Home = () => {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
 
-  const categories = ["Food", "Petrol", "Salary", "Entertainment", "Transport", "Other"];
+  const categories = [
+    "Food",
+    "Petrol",
+    "Salary",
+    "Entertainment",
+    "Transport",
+    "Other",
+  ];
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -20,6 +27,32 @@ const Home = () => {
     }
   }, []);
 
+  useEffect(() => {
+    async function getExpensesFromDB() {
+      try {
+        const expenses = await fetch(
+          `${import.meta.env.VITE_DB_URL}expenses.json?auth=${localStorage.getItem("token")}`,
+        );
+
+        if (!expenses.ok) {
+          throw new Error("Failed to fetch expenses from database", expenses);
+        }
+        const data = await expenses.json();
+
+        console.log(data);
+        if (!data) {
+          return;
+        }
+        setExpenseData(Object.values(data));
+      } catch (error) {
+        console.log(error.message);
+        alert("Error fetching expenses from database");
+      }
+    }
+
+    getExpensesFromDB();
+  }, []);
+
   const submitHandler = (e) => {
     e.preventDefault();
     if (!amount || !description || !category) {
@@ -27,6 +60,24 @@ const Home = () => {
       return;
     }
     const newExpense = { amount, description, category };
+    async function addExpenseToDB() {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_DB_URL}expenses.json?auth=${localStorage.getItem("token")}`,
+          {
+            method: "POST",
+            body: JSON.stringify(newExpense),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      } catch (error) {
+        console.log(error);
+        alert("Error adding expense to database");
+      }
+    }
+    addExpenseToDB();
     setExpenseData((prev) => [...prev, newExpense]);
     setAmount("");
     setDescription("");
@@ -84,14 +135,17 @@ const Home = () => {
       </form>
 
       <div className="mt-8 w-96">
-        <h2 className="text-lg font-bold border-b border-black mb-4">Expenses</h2>
+        <h2 className="text-lg font-bold border-b border-black mb-4">
+          Expenses
+        </h2>
         {expenseData.length === 0 ? (
           <p className="text-gray-600">No expenses yet</p>
         ) : (
           <ul className="space-y-3">
             {expenseData.map((expense, ind) => (
               <li key={ind} className="border border-gray-300 rounded p-3">
-                <span className="font-bold">Rs {expense.amount}</span> - {expense.description} ({expense.category})
+                <span className="font-bold">Rs {expense.amount}</span> -{" "}
+                {expense.description} ({expense.category})
               </li>
             ))}
           </ul>
