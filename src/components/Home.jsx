@@ -8,6 +8,8 @@ const Home = () => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
+  const [editMode, setEditMode] = useState(false);
+  const [editingId, setEditingId] = useState(null); //???
 
   const categories = [
     "Food",
@@ -43,7 +45,13 @@ const Home = () => {
         if (!data) {
           return;
         }
-        setExpenseData(Object.values(data));
+        console.log(data);
+        setExpenseData(
+          Object.entries(data).map(([id, expense]) => ({
+            id,
+            ...expense,
+          })),
+        );
       } catch (error) {
         console.log(error.message);
         alert("Error fetching expenses from database");
@@ -60,33 +68,88 @@ const Home = () => {
       return;
     }
     const newExpense = { amount, description, category };
-    async function addExpenseToDB() {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_DB_URL}expenses.json?auth=${localStorage.getItem("token")}`,
-          {
-            method: "POST",
-            body: JSON.stringify(newExpense),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-      } catch (error) {
-        console.log(error);
-        alert("Error adding expense to database");
+    
+    if (editMode) {
+      async function updateExpenseInDB() {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_DB_URL}expenses/${editingId}.json?auth=${localStorage.getItem("token")}`,
+            {
+              method: "PUT",
+              body: JSON.stringify(newExpense),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Failed to update expense");
+          }
+        } catch (error) {
+          console.log(error);
+          alert("Error updating expense");
+        }
       }
+      updateExpenseInDB();
+      setExpenseData((prev) =>
+        prev.map((exp) => (exp.id === editingId ? { ...exp, ...newExpense } : exp))
+      );
+      setEditMode(false);
+      setEditingId(null);
+    } else {
+      async function addExpenseToDB() {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_DB_URL}expenses.json?auth=${localStorage.getItem("token")}`,
+            {
+              method: "POST",
+              body: JSON.stringify(newExpense),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        } catch (error) {
+          console.log(error);
+          alert("Error adding expense to database");
+        }
+      }
+      addExpenseToDB();
+      setExpenseData((prev) => [...prev, newExpense]);
     }
-    addExpenseToDB();
-    setExpenseData((prev) => [...prev, newExpense]);
     setAmount("");
     setDescription("");
     setCategory("Food");
   };
 
-  if (!isLoggedIn) {
-    return null;
-  }
+  const editExpenseHandler = (id) => {
+    const expense = expenseData.find((exp) => exp.id === id);
+    
+      setAmount(expense.amount);
+      setDescription(expense.description);
+      setCategory(expense.category);
+      setEditingId(id);
+      setEditMode(true);
+    
+  };
+
+  const deleteExpenseHandler = async (id) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_DB_URL}expenses/${id}.json?auth=${localStorage.getItem("token")}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete expense");
+      }
+      setExpenseData((prev) => prev.filter((exp) => exp.id !== id));
+    } catch (error) {
+      console.log(error);
+      alert("Error deleting expense");
+    }
+  };
 
   return (
     <div className="flex flex-col items-center mt-5">
@@ -130,7 +193,7 @@ const Home = () => {
           type="submit"
           className="mt-5 self-center px-3 py-2 border font-bold rounded-xl cursor-pointer active:scale-95 hover:text-white hover:bg-black transition-colors"
         >
-          Add Expense
+          {editMode ? "Edit Expense" : "Add Expense"}
         </button>
       </form>
 
@@ -142,10 +205,30 @@ const Home = () => {
           <p className="text-gray-600">No expenses yet</p>
         ) : (
           <ul className="space-y-3">
-            {expenseData.map((expense, ind) => (
-              <li key={ind} className="border border-gray-300 rounded p-3">
-                <span className="font-bold">Rs {expense.amount}</span> -{" "}
-                {expense.description} ({expense.category})
+            {expenseData.map((expense) => (
+              <li
+                key={expense.id}
+                className="border border-gray-300 rounded p-3 flex justify-between items-center"
+              >
+                <div>
+                  <span className="font-bold">Rs {expense.amount}</span> -{" "}
+                  {expense.description} ({expense.category}){" "}
+                  {console.log(expense)}
+                </div>
+                <div>
+                  <button
+                    className=" mr-2 border rounded-xl px-1 font-medium hover:bg-black hover:text-white transition-colors active:scale-95"
+                    onClick={() => editExpenseHandler(expense.id)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="border rounded-xl px-1 font-medium hover:bg-black hover:text-white transition-colors active:scale-95"
+                    onClick={() => deleteExpenseHandler(expense.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
